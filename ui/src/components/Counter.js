@@ -424,7 +424,7 @@ export default function Patient (props) {
             <h4 className="mb-3">Please answer to the best of your knowledge</h4>
                 {questions.map(q => (
                     <div key={q.id}>
-                    <label>{q.name || `${q.id}?`}</label>
+                    <label>{q.name || `${q.id}?`} {q.yesInputs}</label>
                     <br />
                     <div className="btn-group btn-group-toggle" data-toggle="buttons">
                         <label className={"btn btn-outline-primary " + (fields[q.id] === "1" ? "active" : "")}>
@@ -437,6 +437,9 @@ export default function Patient (props) {
                             <input type="radio" name={q.id} onChange={onRadio} value="3" checked={fields[q.id] === "3"} id="option3"/> Yes
                         </label>
                     </div>
+					{ q.yesInput && fields[q.id] === "3" && <Edit id={`${q.id}List`} name="Please, list" fields={fields} setValue={setValue}></Edit>}
+					{ q.yesInputs && fields[q.id] === "3" && q.yesInputs.split(',').map(x => 
+					<Edit key={x} id={`${q.id}${x}`} name={`${x} date`} fields={fields} setValue={setValue}></Edit>)}
                     <hr/>
                 </div>
             ))}
@@ -460,19 +463,18 @@ const sexOptions = sex.map((s, i) =>
 const stateOptions = Constants.usStates.map((name, i) =>
     <option key={i}>{name}</option>
 );
-
 const questions = [//{ id: "", name: "" },
-    { id: "q1", name: "Do you feel sick today?" },
-    { id: "q2", name: "Have you been diagnosed with or tested positive for COVID-19 in the last 14 days?" },
-    { id: "q3", name: "In the past 14 days have you been identified as a close contact to someone with COVID-19?" },
-    { id: "q4", yesInput:true, name: "Do you have a history of allergic reaction or allergies to latex, medications, food or vaccines (examples: polyethylene glycol, polysorbate, eggs, bovine protein, gelatin, gentamicin, polymyxin, neomycin, phenol, yeast or thimerosal)?" },
-    { id: "q5", name: "Have you ever had a reaction after receiving a vaccination, including fainting or feeling dizzy? " },
-    { id: "q6", name: "Have you ever had a seizure disorder for which you are on seizure medication(s), a brain disorder, Guillain-Barré syndrome (a condition that causes paralysis) or other nervous system problem?" },
-    { id: "q7", yesInput:true, name: "Have you received any vaccinations or skin tests in the past eight weeks?" },
-    { id: "q8", yesInputs:"Pneumonia,Shingles,Whooping cough", name: "Have you ever received the following vaccinations?" },
-    { id: "q9", yesInput:true, name: "Do you have any chronic health condition such as cancer, chronic kidney disease, immunocompromised, chronic lung disease, obesity, sickle cell disease, diabetes, heart disease?" },
-    { id: "qA", name: "For women: Are you pregnant or considering becoming pregnant in the next month?" },
-    { id: "qB", name: "For COVID-19 vaccine only: Have you been treated with antibody therapy specifically for COVID-19 (monoclonal antibodies or convalescent plasma)?" },
+    { id: "B_Q1", name: "Do you feel sick today?" },
+    { id: "B_Q2", name: "Have you been diagnosed with or tested positive for COVID-19 in the last 14 days?" },
+    { id: "B_Q3", name: "In the past 14 days have you been identified as a close contact to someone with COVID-19?" },
+    { id: "B_Q4", yesInput:true, name: "Do you have a history of allergic reaction or allergies to latex, medications, food or vaccines (examples: polyethylene glycol, polysorbate, eggs, bovine protein, gelatin, gentamicin, polymyxin, neomycin, phenol, yeast or thimerosal)?" },
+    { id: "B_Q5", name: "Have you ever had a reaction after receiving a vaccination, including fainting or feeling dizzy? " },
+    { id: "B_Q6", name: "Have you ever had a seizure disorder for which you are on seizure medication(s), a brain disorder, Guillain-Barré syndrome (a condition that causes paralysis) or other nervous system problem?" },
+    { id: "B_Q7", yesInput:true, name: "Have you received any vaccinations or skin tests in the past eight weeks?" },
+    { id: "B_Q8", yesInputs:"Pneumonia,Shingles,Whooping Cough", name: "Have you ever received the following vaccinations?" },
+    { id: "B_Q9", yesInput:true, name: "Do you have any chronic health condition such as cancer, chronic kidney disease, immunocompromised, chronic lung disease, obesity, sickle cell disease, diabetes, heart disease?" },
+    { id: "B_QA", name: "For women: Are you pregnant or considering becoming pregnant in the next month?" },
+    { id: "B_QB", name: "For COVID-19 vaccine only: Have you been treated with antibody therapy specifically for COVID-19 (monoclonal antibodies or convalescent plasma)?" },
 ]
 
 
