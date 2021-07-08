@@ -234,6 +234,9 @@ export function Insured(props) {
 
 var t = new Date();
 var date = t.getDate();
+var min = t.getMinutes();
+min = 15*(Math.ceil(min / 15) + 1);
+t.setMinutes(min);
 t.setDate(date+1);
 data.FirstShotDate = t.toJSON();
 t.setDate(date+30);
