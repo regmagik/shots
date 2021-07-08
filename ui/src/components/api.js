@@ -1,4 +1,9 @@
-const url = '/api/labq';// todo: add environment config?
+const url = 'https://alpha.cairnsoftware.com/api/Vaccine/AddQueue';// todo: add environment config
+
+// use a header key/value to authenticate API access:
+// apikey
+//Value = Bq5UXwkPGxhZWXIXWWYHru0Upe2SiPMY
+
 //function sleep(ms) {
 //	return new Promise(resolve => setTimeout(resolve, ms));
 //}
@@ -57,7 +62,8 @@ async function post(data = {}) {
 	  cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
 	  credentials: 'same-origin', // include, *same-origin, omit
 	  headers: {
-		'Content-Type': 'application/json'
+		'Content-Type': 'application/json',
+		'apikey': 'Bq5UXwkPGxhZWXIXWWYHru0Upe2SiPMY',
 		// 'Content-Type': 'application/x-www-form-urlencoded',
 	  },
 	  body: JSON.stringify(data) // body data type must match "Content-Type" header
