@@ -232,7 +232,7 @@ export function Insured(props) {
 // FirstShotDate": "5/14/2021 9:30 AM",
 // SecondShotDate": "6/14/2021 9:30 AM",
 
-var t = Date.now();
+var t = new Date();
 var date = t.getDate();
 t.setDate(date+1);
 data.FirstShotDate = t.toJSON();
