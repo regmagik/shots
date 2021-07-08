@@ -228,6 +228,18 @@ export function Insured(props) {
             // convert questions to int
             questions.filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]);})
 
+			// Temporary hardcode dates and location
+// FirstShotDate": "5/14/2021 9:30 AM",
+// SecondShotDate": "6/14/2021 9:30 AM",
+
+var t = Date.now();
+var date = t.getDate();
+t.setDate(date+1);
+data.FirstShotDate = t.toJSON();
+t.setDate(date+30);
+data.SecondShotDate = t.toJSON();
+
+data.Location = "TEST";
             // post data to the server
             const confirmation = await api.post(data);
             if (!confirmation)
