@@ -258,8 +258,8 @@ data.Location = "TEST";
             }
 
             // display confirmation number
-            sessionStorage.setItem("confirmation", confirmation.confirmationCode);
-            sessionStorage.setItem("confirmationSent", confirmation.confirmationSent);
+            sessionStorage.setItem("confirmation", confirmation.ConfirmationCode);
+//            sessionStorage.setItem("confirmationSent", confirmation.confirmationSent);
             history.push("complete");
         }
         catch (e) {
