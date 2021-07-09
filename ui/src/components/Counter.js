@@ -241,7 +241,9 @@ t.setDate(date+1);
 data.FirstShotDate = t.toJSON();
 t.setDate(date+30);
 data.SecondShotDate = t.toJSON();
-
+data.C_ConsentName = "XConsent";
+data.C_ConsentDate = "11/22/2000";
+data.Vaccine = "MODERNA";
 data.Location = "TEST";
             // post data to the server
             const confirmation = await api.post(data);
@@ -249,15 +251,16 @@ data.Location = "TEST";
                 return;
 
             //            console.log(fileInputs);
-            const filesToUpload = fileInputs.filter(i => files[i.id]);
-            if (filesToUpload.some(x => true)) {
-                console.log('uploading', filesToUpload.length, 'files...')
-                await Promise.all(
-                    filesToUpload.map(async i => uploadFile(i, confirmation.id)));
-                console.log('uploaded.');
-            }
+            // const filesToUpload = fileInputs.filter(i => files[i.id]);
+            // if (filesToUpload.some(x => true)) {
+            //     console.log('uploading', filesToUpload.length, 'files...')
+            //     await Promise.all(
+            //         filesToUpload.map(async i => uploadFile(i, confirmation.id)));
+            //     console.log('uploaded.');
+            // }
 
             // display confirmation number
+			console.log(confirmation);
             sessionStorage.setItem("confirmation", confirmation.ConfirmationCode);
 //            sessionStorage.setItem("confirmationSent", confirmation.confirmationSent);
             history.push("complete");
@@ -488,8 +491,8 @@ const questions = [//{ id: "", name: "" },
     { id: "B_Q7", yesInput:true, name: "Have you received any vaccinations or skin tests in the past eight weeks?" },
     { id: "B_Q8", yesInputs:"Pneumonia,Shingles,Whooping Cough", name: "Have you ever received the following vaccinations?" },
     { id: "B_Q9", yesInput:true, name: "Do you have any chronic health condition such as cancer, chronic kidney disease, immunocompromised, chronic lung disease, obesity, sickle cell disease, diabetes, heart disease?" },
-    { id: "B_QA", name: "For women: Are you pregnant or considering becoming pregnant in the next month?" },
-    { id: "B_QB", name: "For COVID-19 vaccine only: Have you been treated with antibody therapy specifically for COVID-19 (monoclonal antibodies or convalescent plasma)?" },
+    { id: "B_Q10", name: "For women: Are you pregnant or considering becoming pregnant in the next month?" },
+    { id: "B_Q11", name: "For COVID-19 vaccine only: Have you been treated with antibody therapy specifically for COVID-19 (monoclonal antibodies or convalescent plasma)?" },
 ]
 
 
