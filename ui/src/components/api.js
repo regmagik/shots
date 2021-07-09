@@ -68,13 +68,13 @@ async function post(data = {}) {
 	  },
 	  body: JSON.stringify(data) // body data type must match "Content-Type" header
 	});
-//	console.log(response);
+	console.log("res", response);
 	if (!response.ok) {
 		throw new Error('Failed to connect. Please check your Internet connection or try again later.');
 	}
 var json = await response.json(); // parses JSON response into native JavaScript objects
-	console.log(json);
-	if (response.StatusCode > 299) {
+	console.log('data', json);
+	if (json.StatusCode > 299) {
 		throw new Error('Please check your answers: ' + json.Message);
     }
 	return json;
