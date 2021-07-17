@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useHistory } from "react-router-dom";
 import { useFormFields } from './Field';
-import api, { postFile, getResult } from './api';
+import api, { postFile, getLocations } from './api';
 import Constants from '../constants';
 import LoaderButton from './LoaderButton';
 
@@ -16,22 +16,29 @@ function getLocalPatient() {
 function getLocalInsured() {
     return getLocal("Insured");
 }
+function validate(data, field, name) {
+    console.log('validate', field);
+    if (!data[field])
+        throw new Error(`Please enter a valid ${name || field}`);
+}
 
 export function Edit(props) {
+    const type = props.type || "text";
     return (
         <div className="col-md-6 mb-3">
             <label htmlFor={props.id}>{props.name} {props.required &&
                 "*"
             }</label>
-            <input type="text" className="form-control" id={props.id}
-                placeholder={props.name}
-                value={props.fields[props.id] || ''}
-                onChange={props.setValue} />
-            {props.required &&
-                <div className="invalid-feedback">
-                    {props.name} is required.
+            <div className="input-group">
+                { type === "email" && <div className="input-group-prepend">
+                    <span className="input-group-text">@</span>
                 </div>
-            }
+                }
+                <input type={ type } className="form-control" id={props.id}
+                    placeholder={props.name}
+                    value={props.fields[props.id] || ''}
+                    onChange={props.setValue} />
+            </div>
         </div>
     );
 }
@@ -79,74 +86,6 @@ export function Select(props) {
     );
 }
 
-export function Prompt(props) {
-//    const confirmation = localStorage.getItem("confirmation");
-    const [fields, setValue] = useFormFields({});
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null);
-
-    async function onSave(event) {
-        event.preventDefault();
-        const code = fields["confirmationCode"];
-        if (!code) {
-            setError("Confirmation Code is required.");
-            return;
-        }
-
-        if (code.length > 8 || !isAlphaNum(code)) {
-            setError("Confirmation Code is 8 letters or numbers");
-            return;
-        }
-
-        try {
-            setLoading(true);
-            setResult(null);
-            setError('');
-            const response = await getResult(code);
-            console.log("setResult", response);
-            setResult(response);
-        }
-        catch (e) {
-            console.log(e);
-            setError("Error getting result for your confirmation code. Please try again later.");
-        }
-        finally {
-            setLoading(false);
-        }
-    }
-    return (
-        <div>
-            <h4>Please, enter your confirmation code</h4>
-            <Edit id="confirmationCode" name="Confirmation Code"
-                required="true" fields={fields} setValue={setValue} />
-            <LoaderButton className="btn btn-primary btn-lg mb-3 btn-block" isLoading={loading}
-                onClick={onSave}>View Test Results</LoaderButton>
-            {error && <div className="alert alert-danger" role="alert">
-                {error}
-            </div>}
-            {result && !result.found && <div className="alert alert-warning" role="alert">
-                Your confirmation code is not valid.
-                <hr />
-                Please enter a valid confirmation code.
-            </div>}
-            {result && result.found && !result.ready && <div className="alert alert-primary" role="alert">
-                Your confirmation code is valid, but your COVID-19 test result is not ready yet. 
-                <hr />
-                 Please try again later.
-            </div>}
-            {result && result.found && result.ready && <div className="alert alert-primary" role="alert">
-                We are {result.positive ? "sorry" : "happy"} to inform you that
-                your COVID-19 test
-                result is {result.positive ? "POSITIVE" : "NEGATIVE"}.
-            </div>}
-            {result && result.date && <div className="alert alert-primary" role="alert">
-                {result.ready ? "Tested" : "Registered"} on {result.date}.
-            </div>}
-        </div>
-    );
-}
-
 function isAlphaNum(str) {
     var code, i, len;
 
@@ -163,7 +102,6 @@ function isAlphaNum(str) {
 
 export function Complete(props) {
     const confirmation = sessionStorage.getItem("confirmation");
-    const confirmationSent = sessionStorage.getItem("confirmationSent");
     const history = useHistory();
     if (!confirmation)
         history.push('/');
@@ -171,26 +109,26 @@ export function Complete(props) {
     return (
         <div>
             <h4>Complete</h4>
-            Your confirmation number is: {confirmation}.
-            {confirmationSent &&
-                <p>We have emailed it to you.</p>
-            }
+            <p>Your confirmation number is: <b>{confirmation}</b>.</p>
+			<p>We have emailed it to you.</p>
         </div>
     );
 }
 
 export function Insured(props) {
     let state = getLocalInsured();
-    //TODO: default ins address to patient address
-    if (!state["insAddress1"] && !state["insAddress2"]
-        && !state["insCity"] && !state["insZip"]) {
-        const pat = getLocalPatient();
-        state = {
-            ...state, insAddress1: pat.address1, insAddress2: pat.address2,
-            insCity: pat.city, insState: pat.state, insZip: pat.zip
-        };
-    }
-    const [fields, setValue] = useFormFields(state);
+	if (!state["insRelationship"] && !state["insAddress1"] && !state["insAddress2"]
+	&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
+	const pat = getLocalPatient();
+	state = {
+		...state, //insRelationship: "I", 
+		insFirstName: pat.firstName, insLastName: pat.lastName,
+		insAddress1: pat.address1, insAddress2: pat.address2,
+		insCity: pat.city, insState: pat.state, insZip: pat.zip, 
+		insDob: pat.dob
+	};
+}
+const [fields, setValue] = useFormFields(state);
     const history = useHistory();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -214,21 +152,39 @@ export function Insured(props) {
         sessionStorage.setItem("Insured", JSON.stringify(fields));
 
         // merge into one object
-        const data = {...getLocalPatient(), ...fields};
+        const data = {...getLocal('location'), ...getLocalPatient(), ...fields};
         try {
             sessionStorage.setItem("confirmation", '');
-            sessionStorage.setItem("confirmationSent", '');
 
             // validate form data
             validate(data, 'firstName');
             validate(data, 'lastName');
+            validate(data, 'insName', 'Insurance Name');
+            // if the patient has insurance...
+            if (fields['insName'] !== Constants.noInsurance) {
+                validate(data, 'insFirstName', 'Insured First Name');
+                validate(data, 'insLastName', 'Insured Last Name');
+                validate(data, 'insPolicyNumber', 'Policy Number');
+                validate(data, 'insGroupNumber', "Group Number");
+//                validate(data, 'insRelationship', 'Patient Relationship to Insured');
+                validate(data, 'insDob', "Insured Date of Birth" );
+//                validate(data, 'insGender', "Insured Gender" );
+                validate(data, 'insAddress1', "Insured Address" );
+                validate(data, 'insCity', "Insured City" );
+                validate(data, 'insState', "Insured State" );
+                validate(data, 'insZip', "Insured Zip");
+
+                // also require insurance card images
+                fileInputs.map(i => ({ ...i, required:true})).forEach(i => validateFile(i));
+            }
             fileInputs.forEach(i => validateFile(i));
 
             setLoading(true);
-            // convert questions to int
+
+			// convert questions to int
             questions.filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]);})
 
-			// Temporary hardcode dates and location
+			// Temporary hardcode dates 
 // FirstShotDate": "5/14/2021 9:30 AM",
 // SecondShotDate": "6/14/2021 9:30 AM",
 
@@ -244,8 +200,8 @@ data.SecondShotDate = t.toJSON();
 data.C_ConsentName = "XConsent";
 data.C_ConsentDate = "11/22/2000";
 data.Vaccine = "MODERNA";
-data.Location = "TEST";
-            // post data to the server
+
+// post data to the server
             const confirmation = await api.post(data);
             if (!confirmation)
                 return;
@@ -262,7 +218,6 @@ data.Location = "TEST";
             // display confirmation number
 			console.log(confirmation);
             sessionStorage.setItem("confirmation", confirmation.ConfirmationCode);
-//            sessionStorage.setItem("confirmationSent", confirmation.confirmationSent);
             history.push("complete");
         }
         catch (e) {
@@ -287,8 +242,8 @@ data.Location = "TEST";
                     <Edit id="insPolicyNumber" name="Policy Number" fields={fields} setValue={setValue} />
                 </div>
                 <div className="row">
-                    <Edit id="groupNumber" name="Group Number" fields={fields} setValue={setValue} />
-                    <Select id="insRelation" name="Patient Relationship to Insured" required="true" fields={fields} setValue={setValue}>
+                    <Edit id="insGroupNumber" name="Group Number" fields={fields} setValue={setValue} />
+                    <Select id="insRelationship" name="Patient Relationship to Insured" fields={fields} setValue={setValue}>
                         { Constants.relToInsured.map(rel =>
                             <option key={rel.code} value={rel.code}>{ rel.name }</option>
                         )}
@@ -334,11 +289,6 @@ data.Location = "TEST";
         </form>
         </div>
     );
-    function validate(data, field) {
-        console.log('validate', field);
-        if (!data[field])
-            throw new Error(`Please enter a valid ${field}`);
-    }
     async function uploadFile(fileInput, id) {
         console.log('check file', fileInput.id);
         const file = files[fileInput.id];
@@ -364,19 +314,41 @@ data.Location = "TEST";
 export default function Patient (props) {
     const savedState = sessionStorage.getItem("Patient");
     const state = JSON.parse(savedState) || {};
-    //console.log(state);
     const [fields, setValue] = useFormFields(state);
     const history = useHistory();
 
-    function onSave() {
+    const inputs = [//{ id: "", name: "", required: true, type: "", options: },
+        { id: "firstName", name: "Patient First Name", required: true },
+        { id: "lastName", name: "Patient Last Name", required: true },
+        { id: "email", name: "Email", type: "email", required: true, },
+        { id: "cellPhone", name: "Cell Phone", required: true },
+        { id: "dl", name: "Driver's License", required: true },
+        { id: "dob", name: "Date of Birth", type: "date", required: true },
+        { id: "address1", name: "Patient Address", required: true },
+        { id: "address2", name: "Patient Address 2" },
+        { id: "city", name: "Patient City", required: true },
+        { id: "state", name: "State", required: true, options: stateOptions },
+        { id: "zip", name: "Zip", required: true },
+        { id: "race", name: "Race", options: raceOptions },
+        { id: "sex", name: "Gender", options: sexOptions }
+    ];
+
+    function onSave(e) {
+		e.preventDefault();
         setError('');
         console.log(fields);
 
-        // save data to the session storage
-        sessionStorage.setItem("Patient", JSON.stringify(fields));
-        history.push("insured");
+        try {
+            inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
+            // save data to the session storage
+            sessionStorage.setItem("Patient", JSON.stringify(fields));
+            history.push("insured");
+        }
+        catch (e) {
+            console.log(e);
+            setError(e.message);
+        }
     }
-//    const [toggles, setToggle] = useState({});
     const [error, setError] = useState('');
 
     function onRadio(e) {
@@ -385,60 +357,17 @@ export default function Patient (props) {
     return (
     <div>
         <h4 className="mb-3">Please tell us about the patient.</h4>
-        <form className="needs-validation">
+        <form>
             <div className="row">
-                <Edit id="firstName" name="Patient First Name" required="true" fields={fields} setValue={setValue} />
-                <Edit id="lastName" name="Patient Last Name" required="true" fields={fields} setValue={setValue} />
+                {inputs.map((input, i) => 
+                    input.options ?
+                        <Select key={input.id} id={input.id} name={input.name} required={ input.required } fields={fields} setValue={setValue}>
+                            {input.options}
+                        </Select>
+                        :
+                        <Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} fields={fields} setValue={setValue} />
+                )}
             </div>
-            <div className="row">
-                <div className="col-md-6 mb-3">
-                    <label htmlFor="email">Email</label>
-                    <div className="input-group">
-                        <div className="input-group-prepend">
-                            <span className="input-group-text">@</span>
-                        </div>
-                        <input type="text" className="form-control" id="email" required=""
-                            value={fields["email"] || ''} onChange={ setValue } />
-                        <div className="invalid-feedback">
-                            Your email is required.
-                        </div>
-                    </div>
-                </div>
-                <Edit id="cellPhone" name="Cell Phone" fields={fields} setValue={setValue} />
-            </div>
-            <div className="row">
-                <Edit id="dl" name="Driver's License" fields={fields} setValue={setValue}/>
-
-                <div className="col-md-6 mb-3">
-                    <label htmlFor="dob">Date of Birth</label>
-                    <input type="date" className="form-control" id="dob"
-                        value={fields["dob"] || ''} onChange={setValue} />
-                </div>
-            </div>
-
-            <div className="row">
-                <Edit id="address1" name="Patient Address" required="true" fields={fields} setValue={setValue} />
-                <Edit id="address2" name="Patient Address 2" fields={fields} setValue={setValue}/>
-            </div>
-
-            <div className="row">
-                <Edit id="city" name="Patient City" fields={fields} setValue={setValue} />
-                <Select id="state" name="State" required="true" fields={fields} setValue={setValue}>
-                    {stateOptions}
-                </Select>
-            </div>
-
-                <div className="row">
-                    <Edit id="zip" name="Zip" fields={fields} setValue={setValue} />
-                    <Select id="race" name="Race" fields={fields} setValue={setValue}>
-                        {raceOptions}
-                    </Select>
-                </div>
-                <div className="row">
-                    <Select id="sex" name="Gender" fields={fields} setValue={setValue}>
-                        {sexOptions}
-                    </Select>
-                </div>
             <h4 className="mb-3">Please answer to the best of your knowledge</h4>
                 {questions.map(q => (
                     <div key={q.id}>
@@ -464,14 +393,70 @@ export default function Patient (props) {
             {error && <div className="alert alert-danger" role="alert">
                 {error}
             </div>}
-            <button className="btn btn-primary btn-lg btn-block mb-3" onClick={(e) => { e.preventDefault(); onSave(); }}>Continue</button>
+            <button className="btn btn-primary btn-lg btn-block mb-3" onClick={onSave}>Continue</button>
         </form>
+    </div>
+    );
+}
+
+export function Start () {
+    const inputs = [//{ id: "", name: "", required: true, type: "", options: },
+        { id: "location", name: "Location", required: true, options: locationOptions },
+    ];
+
+    return <Selector formId = 'location' inputs={inputs} next="patient"></Selector>
+}
+
+export function Selector ({formId, inputs, next}) {
+    const savedState = sessionStorage.getItem(formId);
+    const state = JSON.parse(savedState) || {};
+    const [fields, setValue] = useFormFields(state);
+    const history = useHistory();
+
+    function onSave(e) {
+		e.preventDefault();
+        setError('');
+
+        try {
+            inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
+            // save data to the session storage
+            sessionStorage.setItem(formId, JSON.stringify(fields));
+            history.push(next);
+        }
+        catch (e) {
+//            console.log(e);
+            setError(e.message);
+        }
+    }
+    const [error, setError] = useState('');
+
+    return (
+    <div>
+        <h4 className="mb-3">Please select location.</h4>
+		<div className="row">
+			{inputs.map((input, i) => 
+				input.options ?
+					<Select key={input.id} id={input.id} name={input.name} required={ input.required } fields={fields} setValue={setValue}>
+						{input.options}
+					</Select>
+					:
+					<Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} fields={fields} setValue={setValue} />
+			)}
+		</div>
+		{error && <div className="alert alert-danger" role="alert">
+			{error}
+		</div>}
+		<button className="btn btn-primary btn-lg btn-block mb-3" onClick={onSave}>Continue</button>
     </div>
     );
 }
 
 const raceOptions = Constants.races.map((race, i) =>
     <option key={i} value={race.code}>{race.name}</option>
+);
+const locations = [{ id: "TEST", name: "TEST" }, { id: "OTHER", name: "Other" },];
+const locationOptions = locations.map((s, i) =>
+    <option key={i} value={s.id}>{s.name}</option>
 );
 
 const sex = [{ id: "F", name: "Female" }, { id: "M", name: "Male" }, { id: "U", name: "Unknown" },];

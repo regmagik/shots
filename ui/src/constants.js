@@ -1,4 +1,4 @@
-
+const noInsurance = 'NO HEALTH INSURANCE';
 const Constants = 
 {
 	maxFileSize: 6000000,
@@ -8,20 +8,19 @@ const Constants =
 		'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND',
 		'MP', 'OH', 'OK', 'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD',
 		'TN', 'TX', 'UT', 'VT', 'VI', 'VA', 'WA', 'WV', 'WI', 'WY'],
-
     insurers: ['AETNA', 'AMBETTER', 'ANTHEM / BCBS', 'BCBS FEDERAL', 'CIGNA',
         'CORE ADMIN SERV', 'GEHA', 'GOLDEN RULE', 'GREAT WEST',
         'HUMANA', 'MEDICARE', 'MERITAIN HEALTH', 'RAILROAD MEDICARE', 'SECURE HEALTH',
         'TRICARE', 'UNITED HEALTHCARE', 'WELLCARE', 'MEDICAID', 'OTHER INSURANCE',
-        'NO HEALTH INSURANCE'
+        noInsurance
     ],
-
+    noInsurance: noInsurance,
     races: [
         {code: 'B', name: 'African American'},
         {code: 'A', name: 'Asian'},
         {code: 'C', name: 'Caucasian'},
         {code: 'H', name: 'Hispanic'},
-        { code: 'I', name: 'Native American' }
+        {code: 'I', name: 'Native American'},
     ],
 
     relToInsured: [
@@ -35,7 +34,7 @@ const Constants =
         { code: 'M', name: 'Mother' },
         { code: 'B', name: 'Sibling' },
         { code: 'N', name: 'Son' },
-        { code: 'O', name: 'Other' }
+        { code: 'O', name: 'Other' },
     ],
 }
 
