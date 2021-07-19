@@ -157,6 +157,7 @@ const [fields, setValue] = useFormFields(state);
             sessionStorage.setItem("confirmation", '');
 
             // validate form data
+            validate(data, 'location');
             validate(data, 'firstName');
             validate(data, 'lastName');
             validate(data, 'insName', 'Insurance Name');
@@ -182,7 +183,7 @@ const [fields, setValue] = useFormFields(state);
             setLoading(true);
 
 			// convert questions to int
-            questions.filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]);})
+            questions.filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]) || 1;})
 
 			// Temporary hardcode dates 
 // FirstShotDate": "5/14/2021 9:30 AM",
@@ -204,7 +205,7 @@ data.Vaccine = "MODERNA";
 // post data to the server
             const confirmation = await api.post(data);
             if (!confirmation)
-                return;
+                throw new Error('Failed to get confirmation number. ');
 
             //            console.log(fileInputs);
             // const filesToUpload = fileInputs.filter(i => files[i.id]);
@@ -216,16 +217,15 @@ data.Vaccine = "MODERNA";
             // }
 
             // display confirmation number
-			console.log(confirmation);
             sessionStorage.setItem("confirmation", confirmation.ConfirmationCode);
             history.push("complete");
         }
         catch (e) {
+            setLoading(false);
             console.log(e);
             setError(e.message);
         }
         finally {
-            setLoading(false);
         }
     }
 
@@ -313,7 +313,10 @@ data.Vaccine = "MODERNA";
 
 export default function Patient (props) {
     const savedState = sessionStorage.getItem("Patient");
-    const state = JSON.parse(savedState) || {};
+	let defaultState = {};
+	questions.forEach(q => defaultState[q.id]="1");
+    const state = JSON.parse(savedState) || defaultState;
+	console.log(state);
     const [fields, setValue] = useFormFields(state);
     const history = useHistory();
 
@@ -330,7 +333,7 @@ export default function Patient (props) {
         { id: "state", name: "State", required: true, options: stateOptions },
         { id: "zip", name: "Zip", required: true },
         { id: "race", name: "Race", options: raceOptions },
-        { id: "sex", name: "Gender", options: sexOptions }
+        { id: "sex", name: "Gender", options: sexOptions, required: true }
     ];
 
     function onSave(e) {
@@ -401,7 +404,7 @@ export default function Patient (props) {
 
 export function Start () {
     const inputs = [//{ id: "", name: "", required: true, type: "", options: },
-        { id: "location", name: "Location", required: true, options: locationOptions },
+        { id: "location", name: "Location", required: true },
     ];
 
     return <Selector formId = 'location' inputs={inputs} next="patient"></Selector>
@@ -453,10 +456,6 @@ export function Selector ({formId, inputs, next}) {
 
 const raceOptions = Constants.races.map((race, i) =>
     <option key={i} value={race.code}>{race.name}</option>
-);
-const locations = [{ id: "TEST", name: "TEST" }, { id: "OTHER", name: "Other" },];
-const locationOptions = locations.map((s, i) =>
-    <option key={i} value={s.id}>{s.name}</option>
 );
 
 const sex = [{ id: "F", name: "Female" }, { id: "M", name: "Male" }, { id: "U", name: "Unknown" },];
