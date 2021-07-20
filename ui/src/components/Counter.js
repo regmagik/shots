@@ -167,10 +167,10 @@ export function Insured() {
                 validate(data, 'insFirstName', 'Insured First Name');
                 validate(data, 'insLastName', 'Insured Last Name');
                 validate(data, 'insPolicyNumber', 'Policy Number');
-                validate(data, 'insGroupNumber', "Group Number");
-//                validate(data, 'insRelationship', 'Patient Relationship to Insured');
+//                validate(data, 'insGroupNumber', "Group Number");
+                validate(data, 'insRelationship', 'Patient Relationship to Insured');
                 validate(data, 'insDob', "Insured Date of Birth" );
-//                validate(data, 'insGender', "Insured Gender" );
+                validate(data, 'insGender', "Insured Gender" );
                 validate(data, 'insAddress1', "Insured Address" );
                 validate(data, 'insCity', "Insured City" );
                 validate(data, 'insState', "Insured State" );
