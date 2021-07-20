@@ -1,41 +1,29 @@
-const url = 'https://alpha.cairnsoftware.com/api/Vaccine/AddQueue';// todo: add environment config
+const url = 'https://alpha.cairnsoftware.com/api/Vaccine';// todo: add environment config
 
-// use a header key/value to authenticate API access:
-// apikey
-//Value = Bq5UXwkPGxhZWXIXWWYHru0Upe2SiPMY
-
+function getHeaders(){
+	return {
+		'Content-Type': 'application/json',
+		'apikey': 'Bq5UXwkPGxhZWXIXWWYHru0Upe2SiPMY',
+	  }
+}
 //function sleep(ms) {
 //	return new Promise(resolve => setTimeout(resolve, ms));
 //}
-export async function getResult(code) {
+export async function getLocation(code) {
 	console.log("getResult", code);
-	const target = `${url}/result/${code}`;
+	const target = `${url}/GetLocation/${code}`;
 	console.log('get', target);
 
 //	await sleep(1000);
 
-	if (code === "TESTXXX1")
-		return { found: true, ready: false };
-	if (code === "TESTXXX2")
-		return { found: true, ready: true, positive: false };
-	if (code === "TESTXXX3")
-		return { found: true, ready: true, positive: true };
-	if (code === "TESTXXX4")
-		return { found: false };
-	if (code === "TESTXXX5")
-		throw new Error("simulated error message");
-
-	try {
-		const response = await fetch(target);
-		const result = await response.json();
-		console.log('Success:', result);
-		return result;
-    }
-	catch (error)
-	{
-		console.error('getResult Error:', error);
-		throw error;
+	const response = await fetch(target, { headers: getHeaders() });
+	console.log('response:', response);
+	const json = await response.json();
+	console.log('json:', json);
+	if (json.StatusCode > 299) {// this API returns status 200 and uses StatusCode to indicate errors
+		throw new Error('Please, check the location: ' + json.Message);
 	}
+	return json;
 }
 export async function postFile(file, field, id) {
 	//	console.log("postFile", field, file.type, id);
@@ -56,16 +44,12 @@ export async function postFile(file, field, id) {
 }
 async function post(data = {}) {
 	console.log("POST", data);
-	const response = await fetch(url, {
+	const response = await fetch(`${url}/AddQueue`, {
 	  method: 'POST', // *GET, POST, PUT, DELETE, etc.
 	  //mode: 'no-cors', // no-cors, *cors, same-origin
 	  cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
 	  //credentials: 'same-origin', // include, *same-origin, omit
-	  headers: {
-		'Content-Type': 'application/json',
-		'apikey': 'Bq5UXwkPGxhZWXIXWWYHru0Upe2SiPMY',
-//		'Accept': '*/*'
-	  },
+	  headers: getHeaders(),
 	  body: JSON.stringify(data) // body data type must match "Content-Type" header
 	});
 	console.log("res", response);
@@ -74,7 +58,7 @@ async function post(data = {}) {
 	}
 var json = await response.json(); // parses JSON response into native JavaScript objects
 	console.log('data', json);
-	if (json.StatusCode > 299) {
+	if (json.StatusCode > 299) {// this API returns status 200 and uses StatusCode to indicate errors
 		throw new Error('Please check your answers: ' + json.Message);
     }
 	return json;
@@ -100,4 +84,4 @@ var json = await response.json(); // parses JSON response into native JavaScript
 	return response.json(); // parses JSON response into native JavaScript objects
   }
 
-export default { post, put };
+export default { post, put, getLocation };

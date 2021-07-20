@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useHistory } from "react-router-dom";
 import { useFormFields } from './Field';
-import api, { postFile, getLocations } from './api';
+import api, { postFile } from './api';
 import Constants from '../constants';
 import LoaderButton from './LoaderButton';
 
@@ -115,20 +115,21 @@ export function Complete(props) {
     );
 }
 
-export function Insured(props) {
+export function Insured() {
     let state = getLocalInsured();
-	if (!state["insRelationship"] && !state["insAddress1"] && !state["insAddress2"]
-	&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
-	const pat = getLocalPatient();
-	state = {
-		...state, //insRelationship: "I", 
-		insFirstName: pat.firstName, insLastName: pat.lastName,
-		insAddress1: pat.address1, insAddress2: pat.address2,
-		insCity: pat.city, insState: pat.state, insZip: pat.zip, 
-		insDob: pat.dob
-	};
-}
-const [fields, setValue] = useFormFields(state);
+	if (!state["insRelationship"] && !state["insAddress1"] 
+		&& !state["insAddress2"]
+		&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
+		const pat = getLocalPatient();
+		state = {
+			...state, //insRelationship: "I", 
+			insFirstName: pat.firstName, insLastName: pat.lastName,
+			insAddress1: pat.address1, insAddress2: pat.address2,
+			insCity: pat.city, insState: pat.state, insZip: pat.zip, 
+			insDob: pat.dob
+		};
+	}
+	const [fields, setValue] = useFormFields(state);
     const history = useHistory();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -407,16 +408,20 @@ export function Start () {
         { id: "location", name: "Location", required: true },
     ];
 
-    return <Selector formId = 'location' inputs={inputs} next="patient"></Selector>
+	async function onNext(data){
+		return await api.getLocation(data.location);
+	}
+
+    return <Selector formId = 'location' inputs={inputs} save={onNext} next="patient"></Selector>
 }
 
-export function Selector ({formId, inputs, next}) {
+export function Selector ({formId, inputs, save, next}) {
     const savedState = sessionStorage.getItem(formId);
     const state = JSON.parse(savedState) || {};
     const [fields, setValue] = useFormFields(state);
     const history = useHistory();
 
-    function onSave(e) {
+    async function onSave(e) {
 		e.preventDefault();
         setError('');
 
@@ -424,6 +429,7 @@ export function Selector ({formId, inputs, next}) {
             inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
             // save data to the session storage
             sessionStorage.setItem(formId, JSON.stringify(fields));
+			await save(fields);
             history.push(next);
         }
         catch (e) {
