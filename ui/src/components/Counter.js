@@ -122,7 +122,7 @@ export function Insured() {
 		&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
 		const pat = getLocalPatient();
 		state = {
-			...state, //insRelationship: "I", 
+			...state, insRelationship: Constants.self, 
 			insFirstName: pat.firstName, insLastName: pat.lastName,
 			insAddress1: pat.address1, insAddress2: pat.address2,
 			insCity: pat.city, insState: pat.state, insZip: pat.zip, 
@@ -412,7 +412,7 @@ export function Start () {
 		return await api.getLocation(data.location);
 	}
 
-    return <Selector formId = 'location' inputs={inputs} save={onNext} next="patient"></Selector>
+    return <Selector formId='location' inputs={inputs} save={onNext} next="patient"></Selector>
 }
 
 export function Selector ({formId, inputs, save, next}) {

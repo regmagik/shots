@@ -1,4 +1,5 @@
 const noInsurance = 'NO HEALTH INSURANCE';
+const self = '18';
 const Constants = 
 {
 	maxFileSize: 6000000,
@@ -22,19 +23,19 @@ const Constants =
         {code: 'H', name: 'Hispanic'},
         {code: 'I', name: 'Native American'},
     ],
-
+	self: self,
     relToInsured: [
-        { code: 'I', name: 'Self' },
-        { code: 'S', name: 'Spouse' },
-        { code: 'C', name: 'Child' },
-        { code: 'D', name: 'Daughter' },
-        { code: 'F', name: 'Father' },
-        { code: 'R', name: 'Friend' },
-        { code: 'G', name: 'Grandparent' },
-        { code: 'M', name: 'Mother' },
-        { code: 'B', name: 'Sibling' },
-        { code: 'N', name: 'Son' },
-        { code: 'O', name: 'Other' },
+        { code: self, cx: 'I', name: 'Self' },
+        { code: '01', cx: 'S', name: 'Spouse' },
+        { code: '19', cx: 'C', name: 'Child' },
+        { code: '19', cx: 'D', name: 'Daughter' },
+        { code: '33', cx: 'F', name: 'Father' },
+        { code: 'G8', cx: 'R', name: 'Friend' },
+        { code: '04', cx: 'G', name: 'Grandparent' },
+        { code: '32', cx: 'M', name: 'Mother' },
+        { code: 'G8', cx: 'B', name: 'Sibling' },
+        { code: '19', cx: 'N', name: 'Son' },
+        { code: 'G8', cx: 'O', name: 'Other' },
     ],
 }
 
