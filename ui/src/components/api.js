@@ -10,7 +10,6 @@ function getHeaders(){
 //	return new Promise(resolve => setTimeout(resolve, ms));
 //}
 export async function getLocation(code) {
-	console.log("getResult", code);
 	const target = `${url}/GetLocation/${code}`;
 	console.log('get', target);
 

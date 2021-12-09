@@ -10,6 +10,9 @@ function getLocal(type) {
     const state = JSON.parse(savedState) || {};
     return state;
 }
+function setLocal(type, data) {
+    sessionStorage.setItem(type, JSON.stringify(data));
+}
 function getLocalPatient() {
     return getLocal("Patient");
 }
@@ -184,7 +187,7 @@ export function Insured() {
             setLoading(true);
 
 			// convert questions to int
-            questions.filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]) || 1;})
+            questions().filter(q => data[q.id]).forEach(q => { data[q.id] = parseInt(data[q.id]) || 1;})
 
 			// Temporary hardcode dates 
 // FirstShotDate": "5/14/2021 9:30 AM",
@@ -315,7 +318,7 @@ data.Vaccine = "MODERNA";
 export default function Patient (props) {
     const savedState = sessionStorage.getItem("Patient");
 	let defaultState = {};
-	questions.forEach(q => defaultState[q.id]="1");
+	questions().forEach(q => defaultState[q.id]="1");
     const state = JSON.parse(savedState) || defaultState;
 	console.log(state);
     const [fields, setValue] = useFormFields(state);
@@ -373,7 +376,7 @@ export default function Patient (props) {
                 )}
             </div>
             <h4 className="mb-3">Please answer to the best of your knowledge</h4>
-                {questions.map(q => (
+                {questions().map(q => (
                     <div key={q.id}>
                     <label>{q.name || `${q.id}?`} {q.yesInputs}</label>
                     <br />
@@ -409,13 +412,15 @@ export function Start () {
     ];
 
 	async function onNext(data){
-		return await api.getLocation(data.location);
+		const options = await api.getLocation(data.location);
+		setLocal('options', options);
 	}
 
-    return <Selector formId='location' inputs={inputs} save={onNext} next="patient"></Selector>
+    return <Form formId='location' title='Please enter the location code.'
+		inputs={inputs} save={onNext} next="patient"></Form>
 }
 
-export function Selector ({formId, inputs, save, next}) {
+export function Form ({formId, title, inputs, save, next}) {
     const savedState = sessionStorage.getItem(formId);
     const state = JSON.parse(savedState) || {};
     const [fields, setValue] = useFormFields(state);
@@ -441,7 +446,7 @@ export function Selector ({formId, inputs, save, next}) {
 
     return (
     <div>
-        <h4 className="mb-3">Please select location.</h4>
+        <h4 className="mb-3">{title}</h4>
 		<div className="row">
 			{inputs.map((input, i) => 
 				input.options ?
@@ -471,7 +476,14 @@ const sexOptions = sex.map((s, i) =>
 const stateOptions = Constants.usStates.map((name, i) =>
     <option key={i}>{name}</option>
 );
-const questions = [//{ id: "", name: "" },
+function questions() {
+	const options = getLocal('options');
+	return options.QuestionSource ? questions1 : questions0;
+}
+const questions1 = [//	{ id: "", name: "" },
+	{ id: "Custom_1", name: "Have you ever receive the COVID-19 vaccine?" },
+];
+const questions0 = [//{ id: "", name: "" },
     { id: "B_Q1", name: "Do you feel sick today?" },
     { id: "B_Q2", name: "Have you been diagnosed with or tested positive for COVID-19 in the last 14 days?" },
     { id: "B_Q3", name: "In the past 14 days have you been identified as a close contact to someone with COVID-19?" },
