@@ -480,9 +480,14 @@ function questions() {
 	const options = getLocal('options');
 	return options.QuestionSource ? questions1 : questions0;
 }
-const questions1 = [//	{ id: "", name: "" },
+const questions1 = [//	{ id: "", name: "?" },
 	{ id: "Custom_1", name: "Have you ever receive the COVID-19 vaccine?" },
-];
+	{ id: "Custom_2", name: "Have you had a positive COVID-19 test in the last 21 days and received convalescent plasma?" },
+	{ id: "Custom_3", name: "Are you sick today or currently in isolation period for COVID-19?" },
+	{ id: "Custom_4", name: "Have you ever had an allergic reaction to another vaccine (other than COVID-19 vaccine) or an injectible medication?" },
+	{ id: "Custom_5", name: "Have you received any vaccinations in the past 14 days?" },
+	{ id: "Custom_6", name: "Do you have a history of Guillain-Barré syndrome (progressive paralysis)?" },
+	];
 const questions0 = [//{ id: "", name: "" },
     { id: "B_Q1", name: "Do you feel sick today?" },
     { id: "B_Q2", name: "Have you been diagnosed with or tested positive for COVID-19 in the last 14 days?" },
