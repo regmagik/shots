@@ -19,6 +19,8 @@ function getLocalPatient() {
 function getLocalInsured() {
     return getLocal("Insured");
 }
+
+// validation
 function isValidEmail(email) {
     var re = /\S+@\S+\.\S+/;
     return re.test(email);
@@ -98,8 +100,69 @@ function validate(data, field, name, type, validator) {
     }
 }
 
+// ranges and dates
+function range(n) {
+	return new Array(n).fill().map((x, i) => i);
+} 
+	const dates = range(31).map(i => padLeadingZeros(i + 1, 2));dates.unshift('Date')
+	//var monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+	const months = range(12).map(i => padLeadingZeros(i + 1, 2)); months.unshift('Month');
+	const currentYear = new Date().getFullYear();
+	function yearsPastToFuture(allowPastYears, allowFutureYears) {
+		const past = +allowPastYears || 0;
+		const future = +allowFutureYears || 0;
+	
+		const factor = future > 0 ? 1 : -1; // reverse order for past only years
+		const startYear = future > 0 ? currentYear - past : currentYear
+		const years = range(past + future + 1)
+			.map(i => `${startYear + factor * i}`);
+		years.unshift('Year');
+		return years;
+	}
+	function padLeadingZeros(num, size) {
+		var s = num + "";
+		while (s.length < size) s = "0" + s;
+		return s;
+	}
+	function makeOptions(list) {
+		return list.map((x, i) =>
+			(x.id && <option key={i} value={x.id}>{x.name}</option>)
+			|| <option key={i}>{x}</option>
+		);
+	}
+	
 export function Edit(props) {
     const type = props.type || "text";
+    // date support
+    const monthId = props.id + 'month';
+    const dateId = props.id + 'date';
+    const yearId = props.id + 'year';
+
+    const dateString = props.fields[props.id] || '';
+    const dateParts = dateString.split('-');
+    const [date, setDate] = useState({
+        [yearId]: dateParts[0],
+        [monthId]: dateParts[1],
+        [dateId]: dateParts[2],
+    });
+
+    //useEffect(() => {
+    //    //       console.log('useEffect', type);
+    //    if (type === 'date') {
+    //        console.log('useEffect', type);
+    //        //            console.log(date);
+    //    }
+    //    props.setValue({ target: { id: props.id, value: `${date[yearId]}-${date[monthId]}-${date[dateId]}` } });
+    //}, [date, type, monthId, dateId, yearId, props]);
+
+    function onChange(e) {
+        console.log(e.target.id, e.target.value);
+        const newDate = { ...date, [e.target.id]: e.target.value };
+//        console.log(newDate);
+        setDate(newDate);
+        props.setValue({ target: { id: props.id, value: `${newDate[yearId]}-${newDate[monthId]}-${newDate[dateId]}` } });
+    }
+//    const minmax = type === 'date' ? { min: '1900-01-01', max: new Date().toISOString().split('T')[0] } : null;
     return (
         <div className="col-md-6 mb-3">
             <label htmlFor={props.id}>{props.name} {props.required &&
@@ -110,10 +173,27 @@ export function Edit(props) {
                     <span className="input-group-text">@</span>
                 </div>
                 }
-                <input type={ type } className="form-control" id={props.id}
+                {type === "date" && <>
+                    <select className="form-control" id={monthId}
+                        value={date[monthId] || ''} onChange={onChange}>
+                        {makeOptions(months)}
+                    </select>
+                    <select className="form-control" id={dateId}
+                        value={date[dateId] || ''} onChange={onChange}>
+                        {makeOptions(dates)}
+                    </select>
+                    <select className="form-control" id={yearId}
+                        value={date[yearId] || ''} onChange={onChange}>
+                        {makeOptions(yearsPastToFuture(props.allowPastYears,
+                            props.allowFutureYears
+                        ))}
+                    </select>
+                </>}
+                {type !== "date" && <input type={type} className="form-control" id={props.id}
                     placeholder={props.name}
                     value={props.fields[props.id] || ''}
                     onChange={props.setValue} />
+                }
             </div>
         </div>
     );
@@ -194,7 +274,6 @@ export function Complete(props) {
 export function Insured() {
     let state = getLocalInsured();
 	if (!state["insRelationship"] && !state["insAddress1"] 
-		&& !state["insAddress2"]
 		&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
 		const pat = getLocalPatient();
 		state = {
@@ -245,7 +324,7 @@ export function Insured() {
                 validate(data, 'insPolicyNumber', 'Policy Number');
 //                validate(data, 'insGroupNumber', "Group Number");
                 validate(data, 'insRelationship', 'Patient Relationship to Insured');
-                validate(data, 'insDob', "Insured Date of Birth" );
+                validate(data, 'insDob', "Insured Date of Birth", 'date', isValidDOB );
                 validate(data, 'insGender', "Insured Gender" );
                 validate(data, 'insAddress1', "Insured Address" );
                 validate(data, 'insCity', "Insured City" );
@@ -403,7 +482,9 @@ export default function Patient (props) {
         { id: "email", name: "Email", type: "email", required: true, },
         { id: "cellPhone", name: "Cell Phone", required: true },
         { id: "sex", name: "Gender", options: sexOptions, required: true },
-        { id: "dob", name: "Date of Birth", type: "date", required: true },
+        { id: "dob", name: "Date of Birth", required: true, 
+			type: "date", validator: isValidDOB, 
+			allowPastYears: 120, allowFutureYears: 0 },
         { id: "address1", name: "Patient Address", required: true },
         { id: "city", name: "Patient City", required: true },
         { id: "state", name: "State", required: true, options: stateOptions },
@@ -455,7 +536,10 @@ export default function Patient (props) {
                             {input.options}
                         </Select>
                         :
-                        <Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} fields={fields} setValue={setValue} />
+                        <Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} 
+							allowPastYears={input.allowPastYears} 
+                        	allowFutureYears={input.allowFutureYears}
+							fields={fields} setValue={setValue} />
                 )}
             </div>
             <h4 className="mb-3">Please answer to the best of your knowledge</h4>
@@ -537,7 +621,10 @@ export function Form ({formId, title, inputs, save, next}) {
 						{input.options}
 					</Select>
 					:
-					<Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} fields={fields} setValue={setValue} />
+					<Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} 
+						allowPastYears={input.allowPastYears} 
+						allowFutureYears={input.allowFutureYears}
+						fields={fields} setValue={setValue} />
 			)}
 		</div>
 		{error && <div className="alert alert-danger" role="alert">
