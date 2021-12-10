@@ -279,7 +279,7 @@ export function Insured() {
 		state = {
 			...state, insRelationship: Constants.self, 
 			insFirstName: pat.firstName, insLastName: pat.lastName,
-			insAddress1: pat.address1, insAddress2: pat.address2,
+			insAddress1: pat.address1, 
 			insCity: pat.city, insState: pat.state, insZip: pat.zip, 
             insDOB: pat.DOB, insGender: pat.sex
 		};
@@ -425,7 +425,7 @@ data.Vaccine = "MODERNA";
                         {sexOptions}
                     </Select>
                 </div>
-                <div className="form-group">
+                {/* <div className="form-group">
                 <SelectImage name="Insurance Card Front" id="insuranceFront" onChange={onFile} />
                 </div>
                 <div className="form-group">
@@ -433,7 +433,7 @@ data.Vaccine = "MODERNA";
                 </div>
                 <div className="form-group">
                 <SelectImage name="Driver's License" id="license" onChange={ onFile }/>
-                </div>
+                </div> */}
                 <div className="form-group">
                 {error && <div className="alert alert-danger" role="alert">
                     {error}
