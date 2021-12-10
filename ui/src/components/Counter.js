@@ -281,7 +281,7 @@ export function Insured() {
 			insFirstName: pat.firstName, insLastName: pat.lastName,
 			insAddress1: pat.address1, insAddress2: pat.address2,
 			insCity: pat.city, insState: pat.state, insZip: pat.zip, 
-			insDob: pat.dob
+            insDOB: pat.DOB, insGender: pat.sex
 		};
 	}
 	const [fields, setValue] = useFormFields(state);
@@ -290,9 +290,9 @@ export function Insured() {
     const [loading, setLoading] = useState(false);
 
     var fileInputs = [
-        { id: "insuranceFront", name: "Insurance Card Front" },
-        { id: "insuranceBack", name: "Insurance Card Back" },
-        { id: "license", name: "Driver's License" },
+        // { id: "insuranceFront", name: "Insurance Card Front" },
+        // { id: "insuranceBack", name: "Insurance Card Back" },
+        // { id: "license", name: "Driver's License" },
     ];
     var files = {};
     function onFile(id, file) {
