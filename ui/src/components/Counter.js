@@ -401,7 +401,7 @@ data.Vaccine = "MODERNA";
                     <Edit id="insGroupNumber" name="Group Number" fields={fields} setValue={setValue} />
                     <Select id="insRelationship" name="Patient Relationship to Insured" fields={fields} setValue={setValue}>
                         { Constants.relToInsured.map(rel =>
-                            <option key={rel.code} value={rel.code}>{ rel.name }</option>
+                            <option key={rel.cx} value={rel.code}>{ rel.name }</option>
                         )}
                     </Select>
                 </div>
@@ -467,7 +467,7 @@ data.Vaccine = "MODERNA";
     }
 }
 
-export default function Patient (props) {
+export default function Patient () {
     const savedState = sessionStorage.getItem("Patient");
 	let defaultState = {};
 	questions().forEach(q => defaultState[q.id]="1");
@@ -480,7 +480,7 @@ export default function Patient (props) {
         { id: "firstName", name: "Patient First Name", required: true },
         { id: "lastName", name: "Patient Last Name", required: true },
         { id: "email", name: "Email", type: "email", required: true, },
-        { id: "cellPhone", name: "Cell Phone", required: true },
+        { id: "cellPhone", name: "Cell Phone", required: true, type:'phone' },
         { id: "sex", name: "Gender", options: sexOptions, required: true },
         { id: "dob", name: "Date of Birth", required: true, 
 			type: "date", validator: isValidDOB, 
@@ -500,7 +500,7 @@ export default function Patient (props) {
         console.log(fields);
 
         try {
-            inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
+            inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name, i.type, i.validator); });
             
 			if (fields.SSN) {
                 if (!isValidSsn(fields.SSN))
