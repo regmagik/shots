@@ -19,10 +19,83 @@ function getLocalPatient() {
 function getLocalInsured() {
     return getLocal("Insured");
 }
-function validate(data, field, name) {
+function isValidEmail(email) {
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
+function isValidAptDate(x) {
+    const dateParts = parseISODateParts(x);
+    if (!dateParts) return false;
+    const [year, month, date] = dateParts;
+    console.log(year, month, date);
+    return new Date(year, month, date) > Date.now();
+}
+
+function isValidDOB(x) {
+    const dateParts = parseISODateParts(x);
+    if (!dateParts) return false;
+    const [year, month, date] = dateParts;
+    return year > currentYear - 120 && new Date(year, month, date) < Date.now();
+}
+
+function parseISODateParts(x) {
+    console.log('parseISODate', x);
+    var re = /^\d{4}-\d{2}-\d{2}$/;
+    if (!re.test(x)) {
+        console.log(`it must be YYYY-MM-DD`);
+        return false;
+    }
+    const parts = x.split('-');
+    console.log(parts);
+    var year = +parts[0];
+    const month = +parts[1];
+    var date = +parts[2];
+    if (month === 2 && date > 29) {
+        console.log(`there's max of 29 days in February`);
+        return false;
+    }
+    if (month === 2 && date > 28 && year % 4) {
+        console.log(`there's only 28 days in February on a non-leap year`);
+        return false;
+    }
+    if (month === 4 || month === 6 || month === 9 || month === 11) {
+        if (date > 30) {
+            console.log(`there's only 30 days in this month`);
+            return false;
+        }
+    }
+    return [year, month, date];
+}
+
+function isValidSsn(x) {
+    var digits = x.replace(/-/g, '');
+    console.log('SSN', digits);
+    return /^\d{9,10}$/.test(digits);
+}
+
+function isValidPhone(x) {
+    var digits = x.replace(/[-+() .]/g, '');
+    console.log('phone', digits);
+    return /^\d{10}$/.test(digits);
+}
+
+function validate(data, field, name, type, validator) {
     console.log('validate', field);
-    if (!data[field])
+    if (validator && !validator(data[field]))
         throw new Error(`Please enter a valid ${name || field}`);
+
+    if (!data[field])
+        throw new Error(`Please enter ${name || field}`);
+
+    if (type === 'email') {
+        if (!isValidEmail(data[field]))
+            throw new Error(`Please enter a valid ${name || field}`);
+    }
+    if (type === 'phone') {
+        if (!isValidPhone(data[field]))
+            throw new Error(`Please enter a valid ${name || field}`);
+    }
 }
 
 export function Edit(props) {
@@ -161,9 +234,9 @@ export function Insured() {
             sessionStorage.setItem("confirmation", '');
 
             // validate form data
-            validate(data, 'location');
-            validate(data, 'firstName');
-            validate(data, 'lastName');
+//            validate(data, 'location');
+//            validate(data, 'firstName');
+//            validate(data, 'lastName');
             validate(data, 'insName', 'Insurance Name');
             // if the patient has insurance...
             if (fields['insName'] !== Constants.noInsurance) {
@@ -329,15 +402,15 @@ export default function Patient (props) {
         { id: "lastName", name: "Patient Last Name", required: true },
         { id: "email", name: "Email", type: "email", required: true, },
         { id: "cellPhone", name: "Cell Phone", required: true },
-        { id: "dl", name: "Driver's License", required: true },
+        { id: "sex", name: "Gender", options: sexOptions, required: true },
         { id: "dob", name: "Date of Birth", type: "date", required: true },
         { id: "address1", name: "Patient Address", required: true },
-        { id: "address2", name: "Patient Address 2" },
         { id: "city", name: "Patient City", required: true },
         { id: "state", name: "State", required: true, options: stateOptions },
         { id: "zip", name: "Zip", required: true },
-        { id: "race", name: "Race", options: raceOptions },
-        { id: "sex", name: "Gender", options: sexOptions, required: true }
+        { id: "race", name: "Race", required: true, options: raceOptions },
+        { id: "dl", name: "Driver's License/Other ID"},
+        { id: "ssn", name: "SSN"},
     ];
 
     function onSave(e) {
@@ -347,8 +420,18 @@ export default function Patient (props) {
 
         try {
             inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
-            // save data to the session storage
-            sessionStorage.setItem("Patient", JSON.stringify(fields));
+            
+			if (fields.SSN) {
+                if (!isValidSsn(fields.SSN))
+                    throw new Error(`Please enter a valid SSN`);
+            }
+            if (fields.DOB) {
+                if (!isValidDOB(fields.DOB))
+                    throw new Error(`Please enter a valid patient Date of Birth`);
+            }
+			
+			// save data to the storage
+            setLocal('Patient', fields);
             history.push("insured");
         }
         catch (e) {
