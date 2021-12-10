@@ -491,7 +491,7 @@ export default function Patient () {
         { id: "zip", name: "Zip", required: true },
         { id: "race", name: "Race", required: true, options: raceOptions },
         { id: "dl", name: "Driver's License/Other ID"},
-        { id: "ssn", name: "SSN"},
+        { id: "SSN", name: "SSN"},
     ];
 
     function onSave(e) {
