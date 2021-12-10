@@ -1,4 +1,4 @@
-const url = 'https://alpha.cairnsoftware.com/api/Vaccine';// todo: add environment config
+const url = 'https://beta.cairnsoftware.com/api/Vaccine';// todo: add environment config
 
 function getHeaders(){
 	return {
