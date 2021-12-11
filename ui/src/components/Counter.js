@@ -274,7 +274,7 @@ export function Complete(props) {
 export function Insured() {
     let state = getLocalInsured();
 	if (!state["insRelationship"] && !state["insAddress1"] 
-		&& !state["insCity"] && !state["insZip"] && !state["insDob"]) {
+		&& !state["insCity"] && !state["insZip"] && !state["insDOB"]) {
 		const pat = getLocalPatient();
 		state = {
 			...state, insRelationship: Constants.self, 
@@ -324,7 +324,7 @@ export function Insured() {
                 validate(data, 'insPolicyNumber', 'Policy Number');
 //                validate(data, 'insGroupNumber', "Group Number");
                 validate(data, 'insRelationship', 'Patient Relationship to Insured');
-                validate(data, 'insDob', "Insured Date of Birth", 'date', isValidDOB );
+                validate(data, 'insDOB', "Insured Date of Birth", 'date', isValidDOB);
                 validate(data, 'insGender', "Insured Gender" );
                 validate(data, 'insAddress1', "Insured Address" );
                 validate(data, 'insCity', "Insured City" );
@@ -389,42 +389,31 @@ data.Vaccine = "MODERNA";
         <div>
             <h4>Insurance</h4>
             <form className="needs-validation" >
-                <div className="row">
                     <Select id="insName" name="Insurance Name" required="true" fields={fields} setValue={setValue}>
                         { Constants.insurers.map((name, i) =>
                             <option key={i}>{name}</option>
                         )}
                     </Select>
                     <Edit id="insPolicyNumber" name="Policy Number" fields={fields} setValue={setValue} />
-                </div>
-                <div className="row">
                     <Edit id="insGroupNumber" name="Group Number" fields={fields} setValue={setValue} />
                     <Select id="insRelationship" name="Patient Relationship to Insured" fields={fields} setValue={setValue}>
                         { Constants.relToInsured.map(rel =>
                             <option key={rel.cx} value={rel.code}>{ rel.name }</option>
                         )}
                     </Select>
-                </div>
-                <div className="row">
                     <Edit id="insFirstName" name="Insured First Name" fields={fields} setValue={setValue} />
                     <Edit id="insLastName" name="Insured Last Name" fields={fields} setValue={setValue} />
-                </div>
-                <div className="row">
                     <Edit id="insAddress1" name="Insured Address" fields={fields} setValue={setValue} />
-                    <Edit id="insAddress2" name="Insured Address 2" fields={fields} setValue={setValue} />
-                </div>
-                <div className="row">
                     <Edit id="insCity" name="Insured City" fields={fields} setValue={setValue} />
                     <Select id="insState" name="Insured State" fields={fields} setValue={setValue}>
                         {stateOptions}
                     </Select>
-                </div>
-                <div className="row">
                     <Edit id="insZip" name="Insured Zip" fields={fields} setValue={setValue} />
                     <Select id="insGender" name="Insured Gender" fields={fields} setValue={setValue}>
                         {sexOptions}
                     </Select>
-                </div>
+                    <Edit id="insDOB" name="Insured Date of Birth" type="date" allowPastYears="120" allowFutureYears="0"
+                        fields={fields} setValue={setValue} />
                 {/* <div className="form-group">
                 <SelectImage name="Insurance Card Front" id="insuranceFront" onChange={onFile} />
                 </div>
