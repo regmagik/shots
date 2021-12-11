@@ -471,7 +471,7 @@ export default function Patient () {
         { id: "email", name: "Email", type: "email", required: true, },
         { id: "cellPhone", name: "Cell Phone", required: true, type:'phone' },
         { id: "sex", name: "Gender", options: sexOptions, required: true },
-        { id: "dob", name: "Date of Birth", required: true, 
+        { id: "DOB", name: "Date of Birth", required: true, 
 			type: "date", validator: isValidDOB, 
 			allowPastYears: 120, allowFutureYears: 0 },
         { id: "address1", name: "Patient Address", required: true },
@@ -562,8 +562,10 @@ export default function Patient () {
     );
 }
 
-export function Start () {
-    const inputs = [//{ id: "", name: "", required: true, type: "", options: },
+export function Start ({match}) {
+	const at = match.params;
+
+	const inputs = [//{ id: "", name: "", required: true, type: "", options: },
         { id: "location", name: "Location", required: true },
     ];
 
