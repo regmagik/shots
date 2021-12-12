@@ -104,32 +104,32 @@ function validate(data, field, name, type, validator) {
 function range(n) {
 	return new Array(n).fill().map((x, i) => i);
 } 
-	const dates = range(31).map(i => padLeadingZeros(i + 1, 2));dates.unshift('Date')
-	//var monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-	const months = range(12).map(i => padLeadingZeros(i + 1, 2)); months.unshift('Month');
-	const currentYear = new Date().getFullYear();
-	function yearsPastToFuture(allowPastYears, allowFutureYears) {
-		const past = +allowPastYears || 0;
-		const future = +allowFutureYears || 0;
-	
-		const factor = future > 0 ? 1 : -1; // reverse order for past only years
-		const startYear = future > 0 ? currentYear - past : currentYear
-		const years = range(past + future + 1)
-			.map(i => `${startYear + factor * i}`);
-		years.unshift('Year');
-		return years;
-	}
-	function padLeadingZeros(num, size) {
-		var s = num + "";
-		while (s.length < size) s = "0" + s;
-		return s;
-	}
-	function makeOptions(list) {
-		return list.map((x, i) =>
-			(x.id && <option key={i} value={x.id}>{x.name}</option>)
-			|| <option key={i}>{x}</option>
-		);
-	}
+const dates = range(31).map(i => padLeadingZeros(i + 1, 2));dates.unshift('Date')
+//var monthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const months = range(12).map(i => padLeadingZeros(i + 1, 2)); months.unshift('Month');
+const currentYear = new Date().getFullYear();
+function yearsPastToFuture(allowPastYears, allowFutureYears) {
+	const past = +allowPastYears || 0;
+	const future = +allowFutureYears || 0;
+
+	const factor = future > 0 ? 1 : -1; // reverse order for past only years
+	const startYear = future > 0 ? currentYear - past : currentYear
+	const years = range(past + future + 1)
+		.map(i => `${startYear + factor * i}`);
+	years.unshift('Year');
+	return years;
+}
+function padLeadingZeros(num, size) {
+	var s = num + "";
+	while (s.length < size) s = "0" + s;
+	return s;
+}
+function makeOptions(list) {
+	return list.map((x, i) =>
+		(x.id && <option key={i} value={x.id}>{x.name}</option>)
+		|| <option key={i}>{x}</option>
+	);
+}
 	
 export function Edit(props) {
     const type = props.type || "text";
@@ -197,6 +197,20 @@ export function Edit(props) {
             </div>
         </div>
     );
+}
+export function Checkbox(props) {
+    return <>
+        <div className=" col-md-6 mb-3">
+            <div className="form-check">
+                <input type="checkbox" className="form-check-input" id={props.id}
+                    value={props.fields[props.id] || 'x'}
+                    onChange={props.setValue} />
+                <label className="form-check-label" htmlFor={props.id}>{props.name} {props.required &&
+                    "*"
+                }</label>
+            </div>
+        </div>
+    </>
 }
 export function SelectImage(props) {
     function onChange(event) {
@@ -461,7 +475,7 @@ export default function Patient () {
 	let defaultState = {};
 	questions().forEach(q => defaultState[q.id]="1");
     const state = JSON.parse(savedState) || defaultState;
-	console.log(state);
+	//console.log(state);
     const [fields, setValue] = useFormFields(state);
     const history = useHistory();
 
@@ -563,7 +577,8 @@ export default function Patient () {
 }
 
 export function Start ({match}) {
-	const at = match.params;
+	let at = match.params;
+	if(!at.location) at = null;
 
 	const inputs = [//{ id: "", name: "", required: true, type: "", options: },
         { id: "location", name: "Location", required: true },
@@ -575,54 +590,86 @@ export function Start ({match}) {
 	}
 
     return <Form formId='location' title='Please enter the location code.'
-		inputs={inputs} save={onNext} next="patient"></Form>
+		inputs={inputs} save={onNext} next="/patient" initialState={at}></Form>
 }
 
-export function Form ({formId, title, inputs, save, next}) {
-    const savedState = sessionStorage.getItem(formId);
-    const state = JSON.parse(savedState) || {};
+export function Form({ formId, title, saveText, inputs, save, next, initialState, children }) {
+    const state = initialState || getLocal(formId);
     const [fields, setValue] = useFormFields(state);
     const history = useHistory();
+    const [error, setError] = useState('');
 
-    async function onSave(e) {
-		e.preventDefault();
-        setError('');
+	React.useEffect(() => {
+		if (initialState) {
+			console.log('submit', initialState)
+			submit();
+		}
+	}, []);
 
+    async function submit() {
         try {
-            inputs.filter(i => i.required).forEach(i => { validate(fields, i.id, i.name); });
+            inputs.filter(i => i.required || i.validator)
+                .forEach(i => { validate(fields, i.id, i.name, i.type, i.validator); });
             // save data to the session storage
-            sessionStorage.setItem(formId, JSON.stringify(fields));
-			await save(fields);
-            history.push(next);
+            setLocal(formId, fields);
+            if (save) await save(fields);
+            if (next) history.push(next);
         }
         catch (e) {
-//            console.log(e);
             setError(e.message);
         }
     }
-    const [error, setError] = useState('');
 
-    return (
-    <div>
-        <h4 className="mb-3">{title}</h4>
-		<div className="row">
-			{inputs.map((input, i) => 
-				input.options ?
-					<Select key={input.id} id={input.id} name={input.name} required={ input.required } fields={fields} setValue={setValue}>
-						{input.options}
-					</Select>
-					:
-					<Edit key={input.id} id={input.id} name={input.name} required={input.required} type={input.type} 
-						allowPastYears={input.allowPastYears} 
-						allowFutureYears={input.allowFutureYears}
-						fields={fields} setValue={setValue} />
-			)}
-		</div>
-		{error && <div className="alert alert-danger" role="alert">
-			{error}
-		</div>}
-		<button className="btn btn-primary btn-lg btn-block mb-3" onClick={onSave}>Continue</button>
-    </div>
+	function onChange(inputHandler) {
+		return async (e) => {
+	//            console.log('onChange');
+			setValue(e);
+			setError('');
+			if (inputHandler) {
+//                console.log('onChange', e.target.id);
+				try {
+					await inputHandler(e.target.value);
+				}
+				catch (e) {
+					setError(e.message);
+				}
+			}
+		}
+	}
+		
+	async function onSave(e) {
+		e.preventDefault();
+		setError('');
+		await submit();
+	}
+		
+	return (
+        <div>
+            <h4 className="mb-3">{title}</h4>
+            <div className="row">
+                {inputs.map((input, i) =>
+                    input.options ?
+                        <Select key={input.id} id={input.id} name={input.name} required={input.required}
+                            fields={fields} setValue={onChange(input.onChange)}>
+                            {input.options}
+                        </Select>
+                    : input.type === 'checkbox' ?
+                        <Checkbox key={input.id} id={input.id} name={input.name}
+                            required={input.required}
+                            fields={fields} setValue={onChange(input.onChange)} /> 
+                    : <Edit key={input.id} id={input.id} name={input.name}
+                        required={input.required} type={input.type}
+                        allowPastYears={input.allowPastYears} 
+                        allowFutureYears={input.allowFutureYears}
+                        fields={fields} setValue={onChange(input.onChange)} />
+                )}
+            </div>
+            {children}
+            {error && <div className="alert alert-danger" role="alert">
+                {error}
+            </div>}
+            <button className="btn btn-primary btn-lg btn-block mb-3" onClick={onSave}>{saveText || 'Next'}</button>
+        </div>
     );
 }
 

@@ -11,14 +11,12 @@ function getHeaders(){
 //}
 export async function getLocation(code) {
 	const target = `${url}/GetLocation/${code}`;
-	console.log('get', target);
-
+//	console.log('get', target);
 //	await sleep(1000);
-
 	const response = await fetch(target, { headers: getHeaders() });
-	console.log('response:', response);
+//	console.log('response:', response);
 	const json = await response.json();
-	console.log('json:', json);
+//	console.log('json:', json);
 	if (json.StatusCode > 299) {// this API returns status 200 and uses StatusCode to indicate errors
 		throw new Error('Please, check the location: ' + json.Message);
 	}
