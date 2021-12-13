@@ -272,7 +272,10 @@ function isAlphaNum(str) {
 
 export function Complete(props) {
     const confirmation = sessionStorage.getItem("confirmation");
-    const history = useHistory();
+	sessionStorage.clear();
+	sessionStorage.setItem("confirmation", confirmation);
+
+	const history = useHistory();
     if (!confirmation)
         history.push('/');
 
